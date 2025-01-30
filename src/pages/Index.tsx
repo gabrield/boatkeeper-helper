@@ -5,7 +5,7 @@ import { TaskList } from "@/components/TaskList";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Boat, NewBoat, Task } from "@/types/boat";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Navigation } from "@/components/Navigation";
 
@@ -13,6 +13,7 @@ const Index = () => {
   const [boats, setBoats] = useState<Boat[]>([]);
   const [selectedBoat, setSelectedBoat] = useState<Boat | null>(null);
   const [newTask, setNewTask] = useState("");
+  const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
 
   const handleAddBoat = (data: NewBoat) => {
@@ -23,6 +24,7 @@ const Index = () => {
       tasks: [],
     };
     setBoats([...boats, newBoat]);
+    setShowForm(false);
     toast({
       title: "Success",
       description: "Boat added successfully",
@@ -116,24 +118,35 @@ const Index = () => {
   return (
     <div className="container mx-auto py-8">
       <Navigation />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-2xl font-bold mb-4 text-marine-900">
-            Add New Boat
-          </h2>
-          <BoatForm onSubmit={handleAddBoat} />
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-marine-900">Your Boats</h2>
+          <Button onClick={() => setShowForm(!showForm)}>
+            {showForm ? (
+              <>
+                <X className="h-4 w-4" />
+                Close Form
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                Add New Boat
+              </>
+            )}
+          </Button>
         </div>
+        
+        {showForm && (
+          <div className="mb-8">
+            <BoatForm onSubmit={handleAddBoat} />
+          </div>
+        )}
 
-        <div>
-          <h2 className="text-2xl font-bold mb-4 text-marine-900">
-            Your Boats
-          </h2>
-          <BoatList
-            boats={boats}
-            onDelete={handleDeleteBoat}
-            onSelect={setSelectedBoat}
-          />
-        </div>
+        <BoatList
+          boats={boats}
+          onDelete={handleDeleteBoat}
+          onSelect={setSelectedBoat}
+        />
       </div>
 
       {selectedBoat && (
