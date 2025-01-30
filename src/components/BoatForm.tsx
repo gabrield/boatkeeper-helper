@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,20 +10,45 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { NewBoat } from "@/types/boat";
+import { Upload } from "lucide-react";
 
 interface BoatFormProps {
   onSubmit: (data: NewBoat) => void;
 }
 
 export const BoatForm = ({ onSubmit }: BoatFormProps) => {
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+
   const form = useForm<NewBoat>({
     defaultValues: {
       name: "",
       type: "",
       length: "",
       year: "",
+      manufacturer: "",
+      images: [],
     },
   });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newImages: string[] = [];
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === "string") {
+            newImages.push(reader.result);
+            if (newImages.length === files.length) {
+              setSelectedImages(newImages);
+              form.setValue("images", newImages);
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
 
   return (
     <Form {...form}>
@@ -39,6 +64,19 @@ export const BoatForm = ({ onSubmit }: BoatFormProps) => {
               <FormLabel>Boat Name</FormLabel>
               <FormControl>
                 <Input placeholder="Enter boat name" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="manufacturer"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Manufacturer</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter manufacturer name" {...field} />
               </FormControl>
             </FormItem>
           )}
@@ -90,6 +128,41 @@ export const BoatForm = ({ onSubmit }: BoatFormProps) => {
             </FormItem>
           )}
         />
+
+        <div className="space-y-2">
+          <FormLabel>Boat Images</FormLabel>
+          <div className="flex items-center gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => document.getElementById("image-upload")?.click()}
+              className="w-full"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Images
+            </Button>
+            <Input
+              id="image-upload"
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleImageChange}
+            />
+          </div>
+          {selectedImages.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {selectedImages.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`Boat image ${index + 1}`}
+                  className="w-full h-32 object-cover rounded-md"
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
         <Button type="submit" className="w-full">
           Add Boat

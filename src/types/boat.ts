@@ -4,6 +4,8 @@ export interface Boat {
   type: string;
   length: string;
   year: string;
+  manufacturer: string;
+  images: string[];
   assets: Asset[];
   tasks: Task[];
 }
