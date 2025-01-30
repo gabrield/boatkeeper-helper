@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Boat, NewBoat, Task } from "@/types/boat";
 import { Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Navigation } from "@/components/Navigation";
 
 const Index = () => {
   const [boats, setBoats] = useState<Boat[]>([]);
@@ -114,6 +115,7 @@ const Index = () => {
 
   return (
     <div className="container mx-auto py-8">
+      <Navigation />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <h2 className="text-2xl font-bold mb-4 text-marine-900">
