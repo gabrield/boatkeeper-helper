@@ -3,6 +3,7 @@ import { Boat } from "@/types/boat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface BoatListProps {
   boats: Boat[];
@@ -16,7 +17,13 @@ export const BoatList = ({ boats, onDelete, onSelect }: BoatListProps) => {
       {boats.map((boat) => (
         <Card key={boat.id} className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-semibold">{boat.name}</CardTitle>
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={boat.images[0]} alt={boat.name} />
+                <AvatarFallback>{boat.name[0]}</AvatarFallback>
+              </Avatar>
+              <CardTitle className="text-lg font-semibold">{boat.name}</CardTitle>
+            </div>
             <Button
               variant="ghost"
               size="icon"
@@ -36,6 +43,7 @@ export const BoatList = ({ boats, onDelete, onSelect }: BoatListProps) => {
               <p className="text-sm text-gray-500">Type: {boat.type}</p>
               <p className="text-sm text-gray-500">Length: {boat.length}ft</p>
               <p className="text-sm text-gray-500">Year: {boat.year}</p>
+              <p className="text-sm text-gray-500">Manufacturer: {boat.manufacturer}</p>
             </div>
           </CardContent>
         </Card>

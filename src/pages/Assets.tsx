@@ -3,7 +3,7 @@ import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Asset } from "@/types/boat";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Calendar } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const Assets = () => {
@@ -12,6 +12,7 @@ const Assets = () => {
     name: "",
     category: "",
     value: "",
+    expirationDate: "",
   });
   const { toast } = useToast();
 
@@ -20,7 +21,7 @@ const Assets = () => {
     if (!newAsset.name || !newAsset.category || !newAsset.value) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -32,7 +33,7 @@ const Assets = () => {
     };
 
     setAssets([...assets, asset]);
-    setNewAsset({ name: "", category: "", value: "" });
+    setNewAsset({ name: "", category: "", value: "", expirationDate: "" });
     toast({
       title: "Success",
       description: "Asset added successfully",
@@ -75,6 +76,16 @@ const Assets = () => {
                 setNewAsset({ ...newAsset, value: e.target.value })
               }
             />
+            <div className="flex items-center space-x-2">
+              <Input
+                type="date"
+                value={newAsset.expirationDate}
+                onChange={(e) =>
+                  setNewAsset({ ...newAsset, expirationDate: e.target.value })
+                }
+              />
+              <Calendar className="h-4 w-4 text-gray-500" />
+            </div>
             <Button type="submit">
               <Plus className="h-4 w-4 mr-2" />
               Add Asset
@@ -96,6 +107,11 @@ const Assets = () => {
                     Category: {asset.category}
                   </p>
                   <p className="text-sm text-gray-600">Value: {asset.value}</p>
+                  {asset.expirationDate && (
+                    <p className="text-sm text-gray-600">
+                      Expires: {new Date(asset.expirationDate).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
                 <Button
                   variant="destructive"

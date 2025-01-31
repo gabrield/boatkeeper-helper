@@ -17,6 +17,7 @@ export interface Asset {
   name: string;
   category: string;
   value: string;
+  expirationDate?: string;
 }
 
 export interface Task {
