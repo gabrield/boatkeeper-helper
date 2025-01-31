@@ -13,12 +13,13 @@ const Assets = () => {
     category: "",
     value: "",
     expirationDate: "",
+    buyerName: "",
   });
   const { toast } = useToast();
 
   const handleAddAsset = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAsset.name || !newAsset.category || !newAsset.value) {
+    if (!newAsset.name || !newAsset.category || !newAsset.value || !newAsset.buyerName) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -33,7 +34,7 @@ const Assets = () => {
     };
 
     setAssets([...assets, asset]);
-    setNewAsset({ name: "", category: "", value: "", expirationDate: "" });
+    setNewAsset({ name: "", category: "", value: "", expirationDate: "", buyerName: "" });
     toast({
       title: "Success",
       description: "Asset added successfully",
@@ -76,6 +77,13 @@ const Assets = () => {
                 setNewAsset({ ...newAsset, value: e.target.value })
               }
             />
+            <Input
+              placeholder="Buyer Name"
+              value={newAsset.buyerName}
+              onChange={(e) =>
+                setNewAsset({ ...newAsset, buyerName: e.target.value })
+              }
+            />
             <div className="flex items-center space-x-2">
               <Input
                 type="date"
@@ -107,6 +115,7 @@ const Assets = () => {
                     Category: {asset.category}
                   </p>
                   <p className="text-sm text-gray-600">Value: {asset.value}</p>
+                  <p className="text-sm text-gray-600">Owner: {asset.buyerName}</p>
                   {asset.expirationDate && (
                     <p className="text-sm text-gray-600">
                       Expires: {new Date(asset.expirationDate).toLocaleDateString()}
