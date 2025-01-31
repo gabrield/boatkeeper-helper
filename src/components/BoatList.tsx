@@ -2,16 +2,17 @@ import React from "react";
 import { Boat } from "@/types/boat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface BoatListProps {
   boats: Boat[];
   onDelete: (id: string) => void;
   onSelect: (boat: Boat) => void;
+  onEdit: (boat: Boat) => void;
 }
 
-export const BoatList = ({ boats, onDelete, onSelect }: BoatListProps) => {
+export const BoatList = ({ boats, onDelete, onSelect, onEdit }: BoatListProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {boats.map((boat) => (
@@ -24,16 +25,28 @@ export const BoatList = ({ boats, onDelete, onSelect }: BoatListProps) => {
               </Avatar>
               <CardTitle className="text-lg font-semibold">{boat.name}</CardTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(boat.id);
-              }}
-            >
-              <Trash2 className="h-5 w-5 text-red-500" />
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(boat);
+                }}
+              >
+                <Edit className="h-5 w-5 text-blue-500" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(boat.id);
+                }}
+              >
+                <Trash2 className="h-5 w-5 text-red-500" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent
             className="cursor-pointer"

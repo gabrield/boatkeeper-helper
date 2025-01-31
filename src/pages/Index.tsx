@@ -12,6 +12,7 @@ import { Navigation } from "@/components/Navigation";
 const Index = () => {
   const [boats, setBoats] = useState<Boat[]>([]);
   const [selectedBoat, setSelectedBoat] = useState<Boat | null>(null);
+  const [editingBoat, setEditingBoat] = useState<Boat | null>(null);
   const [newTask, setNewTask] = useState("");
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
@@ -31,15 +32,53 @@ const Index = () => {
     });
   };
 
+  const handleUpdateBoat = (data: NewBoat) => {
+    if (!editingBoat) return;
+
+    const updatedBoat: Boat = {
+      ...editingBoat,
+      ...data,
+    };
+
+    setBoats(boats.map((boat) => 
+      boat.id === editingBoat.id ? updatedBoat : boat
+    ));
+
+    if (selectedBoat?.id === editingBoat.id) {
+      setSelectedBoat(updatedBoat);
+    }
+
+    setEditingBoat(null);
+    setShowForm(false);
+    toast({
+      title: "Success",
+      description: "Boat updated successfully",
+    });
+  };
+
   const handleDeleteBoat = (id: string) => {
     setBoats(boats.filter((boat) => boat.id !== id));
     if (selectedBoat?.id === id) {
       setSelectedBoat(null);
     }
+    if (editingBoat?.id === id) {
+      setEditingBoat(null);
+      setShowForm(false);
+    }
     toast({
       title: "Success",
       description: "Boat deleted successfully",
     });
+  };
+
+  const handleEditBoat = (boat: Boat) => {
+    setEditingBoat(boat);
+    setShowForm(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingBoat(null);
+    setShowForm(false);
   };
 
   const handleAddTask = (e: React.FormEvent) => {
@@ -124,12 +163,12 @@ const Index = () => {
           <Button onClick={() => setShowForm(!showForm)}>
             {showForm ? (
               <>
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 mr-2" />
                 Close Form
               </>
             ) : (
               <>
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 mr-2" />
                 Add New Boat
               </>
             )}
@@ -138,7 +177,11 @@ const Index = () => {
         
         {showForm && (
           <div className="mb-8">
-            <BoatForm onSubmit={handleAddBoat} />
+            <BoatForm 
+              onSubmit={editingBoat ? handleUpdateBoat : handleAddBoat}
+              editingBoat={editingBoat}
+              onCancel={editingBoat ? handleCancelEdit : undefined}
+            />
           </div>
         )}
 
@@ -146,6 +189,7 @@ const Index = () => {
           boats={boats}
           onDelete={handleDeleteBoat}
           onSelect={setSelectedBoat}
+          onEdit={handleEditBoat}
         />
       </div>
 

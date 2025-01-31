@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,14 +9,16 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { NewBoat } from "@/types/boat";
-import { Upload } from "lucide-react";
+import { NewBoat, Boat } from "@/types/boat";
+import { Upload, X } from "lucide-react";
 
 interface BoatFormProps {
   onSubmit: (data: NewBoat) => void;
+  editingBoat?: Boat;
+  onCancel?: () => void;
 }
 
-export const BoatForm = ({ onSubmit }: BoatFormProps) => {
+export const BoatForm = ({ onSubmit, editingBoat, onCancel }: BoatFormProps) => {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
   const form = useForm<NewBoat>({
@@ -29,6 +31,20 @@ export const BoatForm = ({ onSubmit }: BoatFormProps) => {
       images: [],
     },
   });
+
+  useEffect(() => {
+    if (editingBoat) {
+      form.reset({
+        name: editingBoat.name,
+        type: editingBoat.type,
+        length: editingBoat.length,
+        year: editingBoat.year,
+        manufacturer: editingBoat.manufacturer,
+        images: editingBoat.images,
+      });
+      setSelectedImages(editingBoat.images);
+    }
+  }, [editingBoat, form]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -164,9 +180,16 @@ export const BoatForm = ({ onSubmit }: BoatFormProps) => {
           )}
         </div>
 
-        <Button type="submit" className="w-full">
-          Add Boat
-        </Button>
+        <div className="flex gap-2">
+          <Button type="submit" className="flex-1">
+            {editingBoat ? "Update Boat" : "Add Boat"}
+          </Button>
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
+        </div>
       </form>
     </Form>
   );
