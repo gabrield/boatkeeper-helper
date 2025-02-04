@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Task } from "@/types/boat";
+import { Task, TaskStatus } from "@/types/boat";
 import { Plus, Trash2, CheckCircle, Circle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -24,9 +24,13 @@ const Maintenance = () => {
 
     const task: Task = {
       id: Math.random().toString(36).substr(2, 9),
+      boat_id: "temporary", // This will be set properly when we integrate with Supabase
       description: newTaskDescription,
       completed: false,
-      boatId: "general", // Using 'general' for tasks not tied to specific boats
+      status: "todo",
+      priority: "medium",
+      due_date: new Date().toISOString(),
+      created_at: new Date().toISOString(),
     };
 
     setTasks([...tasks, task]);

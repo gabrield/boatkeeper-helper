@@ -18,8 +18,8 @@ const Boats = () => {
     const newBoat: Boat = {
       ...data,
       id: Math.random().toString(36).substr(2, 9),
-      assets: [],
-      tasks: [],
+      user_id: "temporary", // This will be set properly when we integrate with Supabase
+      created_at: new Date().toISOString(),
     };
     setBoats([...boats, newBoat]);
     setShowForm(false);

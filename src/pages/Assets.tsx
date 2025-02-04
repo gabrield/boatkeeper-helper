@@ -12,14 +12,14 @@ const Assets = () => {
     name: "",
     category: "",
     value: "",
-    expirationDate: "",
-    buyerName: "",
+    expiration_date: "",
+    buyer_name: "",
   });
   const { toast } = useToast();
 
   const handleAddAsset = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAsset.name || !newAsset.category || !newAsset.value || !newAsset.buyerName) {
+    if (!newAsset.name || !newAsset.category || !newAsset.value || !newAsset.buyer_name) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -30,11 +30,13 @@ const Assets = () => {
 
     const asset: Asset = {
       id: Math.random().toString(36).substr(2, 9),
+      boat_id: "temporary", // This will be set properly when we integrate with Supabase
       ...newAsset,
+      created_at: new Date().toISOString(),
     };
 
     setAssets([...assets, asset]);
-    setNewAsset({ name: "", category: "", value: "", expirationDate: "", buyerName: "" });
+    setNewAsset({ name: "", category: "", value: "", expiration_date: "", buyer_name: "" });
     toast({
       title: "Success",
       description: "Asset added successfully",
@@ -79,17 +81,17 @@ const Assets = () => {
             />
             <Input
               placeholder="Buyer Name"
-              value={newAsset.buyerName}
+              value={newAsset.buyer_name}
               onChange={(e) =>
-                setNewAsset({ ...newAsset, buyerName: e.target.value })
+                setNewAsset({ ...newAsset, buyer_name: e.target.value })
               }
             />
             <div className="flex items-center space-x-2">
               <Input
                 type="date"
-                value={newAsset.expirationDate}
+                value={newAsset.expiration_date}
                 onChange={(e) =>
-                  setNewAsset({ ...newAsset, expirationDate: e.target.value })
+                  setNewAsset({ ...newAsset, expiration_date: e.target.value })
                 }
               />
               <Calendar className="h-4 w-4 text-gray-500" />
@@ -115,10 +117,10 @@ const Assets = () => {
                     Category: {asset.category}
                   </p>
                   <p className="text-sm text-gray-600">Value: {asset.value}</p>
-                  <p className="text-sm text-gray-600">Owner: {asset.buyerName}</p>
-                  {asset.expirationDate && (
+                  <p className="text-sm text-gray-600">Owner: {asset.buyer_name}</p>
+                  {asset.expiration_date && (
                     <p className="text-sm text-gray-600">
-                      Expires: {new Date(asset.expirationDate).toLocaleDateString()}
+                      Expires: {new Date(asset.expiration_date).toLocaleDateString()}
                     </p>
                   )}
                 </div>
