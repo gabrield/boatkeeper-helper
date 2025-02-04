@@ -1,13 +1,17 @@
 import React, { useState } from "react";
 import { BoatList } from "@/components/BoatList";
 import { BoatForm } from "@/components/BoatForm";
-import { TaskList } from "@/components/TaskList";
+import { Navigation } from "@/components/Navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Ship, Anchor, Wrench, Users } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { Boat, NewBoat, Task } from "@/types/boat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Boat, NewBoat, Task } from "@/types/boat";
 import { Plus, X } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { Navigation } from "@/components/Navigation";
+import { TaskList } from "@/components/TaskList";
 
 const Index = () => {
   const [boats, setBoats] = useState<Boat[]>([]);
@@ -16,6 +20,27 @@ const Index = () => {
   const [newTask, setNewTask] = useState("");
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
+
+  // Calculate statistics
+  const totalBoats = boats.length;
+  const totalMaintenanceTasks = boats.reduce(
+    (acc, boat) => acc + boat.tasks.length,
+    0
+  );
+  const totalAssets = boats.reduce(
+    (acc, boat) => acc + boat.assets.length,
+    0
+  );
+
+  const boatsByType = boats.reduce((acc: Record<string, number>, boat) => {
+    acc[boat.type] = (acc[boat.type] || 0) + 1;
+    return acc;
+  }, {});
+
+  const chartData = Object.entries(boatsByType).map(([type, count]) => ({
+    type,
+    count,
+  }));
 
   const handleAddBoat = (data: NewBoat) => {
     const newBoat: Boat = {
@@ -157,6 +182,67 @@ const Index = () => {
   return (
     <div className="container mx-auto py-8">
       <Navigation />
+      
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Boats</CardTitle>
+            <Ship className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalBoats}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
+            <Anchor className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalAssets}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Maintenance Tasks</CardTitle>
+            <Wrench className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalMaintenanceTasks}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">1</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Boats by Type Chart */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Boats by Type</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer className="h-[300px]" config={{}}>
+            <BarChart data={chartData}>
+              <XAxis dataKey="type" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="count" fill="#2563eb" />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-marine-900">Your Boats</h2>
