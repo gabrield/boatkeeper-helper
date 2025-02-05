@@ -9,7 +9,163 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      assets: {
+        Row: {
+          boat_id: string
+          buyer_name: string | null
+          category: string | null
+          created_at: string | null
+          expiration_date: string | null
+          id: string
+          name: string
+          value: string | null
+        }
+        Insert: {
+          boat_id: string
+          buyer_name?: string | null
+          category?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          id?: string
+          name: string
+          value?: string | null
+        }
+        Update: {
+          boat_id?: string
+          buyer_name?: string | null
+          category?: string | null
+          created_at?: string | null
+          expiration_date?: string | null
+          id?: string
+          name?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_boat_id_fkey"
+            columns: ["boat_id"]
+            isOneToOne: false
+            referencedRelation: "boats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      boats: {
+        Row: {
+          created_at: string | null
+          id: string
+          images: string[] | null
+          length: string | null
+          manufacturer: string | null
+          name: string
+          type: string | null
+          updated_at: string | null
+          user_id: string
+          year: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          images?: string[] | null
+          length?: string | null
+          manufacturer?: string | null
+          name: string
+          type?: string | null
+          updated_at?: string | null
+          user_id: string
+          year?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          images?: string[] | null
+          length?: string | null
+          manufacturer?: string | null
+          name?: string
+          type?: string | null
+          updated_at?: string | null
+          user_id?: string
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          boat_id: string | null
+          completed: boolean | null
+          created_at: string | null
+          description: string
+          due_date: string | null
+          id: string
+          priority: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          boat_id?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          description: string
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          boat_id?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          description?: string
+          due_date?: string | null
+          id?: string
+          priority?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_boat_id_fkey"
+            columns: ["boat_id"]
+            isOneToOne: false
+            referencedRelation: "boats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
