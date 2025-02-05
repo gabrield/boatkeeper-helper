@@ -1,6 +1,6 @@
 export interface User {
   id: string;
-  email: string;
+  email?: string; // Made optional to match Supabase's User type
   created_at: string;
 }
 
