@@ -66,6 +66,18 @@ const Maintenance = () => {
     );
   };
 
+  const handleUpdateTask = (taskId: string, updatedTask: Partial<Task>) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, ...updatedTask } : task
+      )
+    );
+    toast({
+      title: "Success",
+      description: "Task updated successfully",
+    });
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
@@ -108,6 +120,7 @@ const Maintenance = () => {
                 onToggle={handleToggleTask}
                 onDelete={handleDeleteTask}
                 onStatusChange={handleStatusChange}
+                onUpdate={handleUpdateTask}
               />
             </div>
           ))}
