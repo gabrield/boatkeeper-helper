@@ -7,18 +7,21 @@ import { Lock, LogIn, User } from "lucide-react";
 import { signIn, signUp } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showConfirmEmail, setShowConfirmEmail] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setShowConfirmEmail(false);
 
     try {
       if (isSignUp) {
@@ -27,6 +30,7 @@ const Login = () => {
           title: "Account created",
           description: "Please check your email to verify your account",
         });
+        setShowConfirmEmail(true);
       } else {
         await signIn(email, password);
         navigate("/");
@@ -36,11 +40,21 @@ const Login = () => {
         });
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      const errorMessage = error.message;
+      if (errorMessage.includes("email_not_confirmed")) {
+        setShowConfirmEmail(true);
+        toast({
+          title: "Email not confirmed",
+          description: "Please check your email and click the confirmation link",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -59,6 +73,16 @@ const Login = () => {
               : "Enter your credentials to access your account"}
           </CardDescription>
         </CardHeader>
+        {showConfirmEmail && (
+          <div className="px-6">
+            <Alert>
+              <AlertDescription>
+                Please check your email and click the confirmation link to verify your account.
+                After confirming, you can sign in.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -105,7 +129,10 @@ const Login = () => {
               {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
               <button
                 type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setShowConfirmEmail(false);
+                }}
                 className="text-marine-800 hover:underline font-medium"
               >
                 {isSignUp ? "Sign in" : "Sign up"}
