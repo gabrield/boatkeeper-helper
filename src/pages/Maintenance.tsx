@@ -3,8 +3,9 @@ import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Task, TaskStatus } from "@/types/boat";
-import { Plus, Trash2, CheckCircle, Circle } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { TaskList } from "@/components/TaskList";
 
 const Maintenance = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -57,10 +58,28 @@ const Maintenance = () => {
     });
   };
 
+  const handleStatusChange = (taskId: string, newStatus: TaskStatus) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === taskId ? { ...task, status: newStatus } : task
+      )
+    );
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, status: TaskStatus) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData("taskId");
+    handleStatusChange(taskId, status);
+  };
+
   return (
     <div className="container mx-auto py-8">
       <Navigation />
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl font-bold mb-4">Maintenance Tasks</h2>
         <form onSubmit={handleAddTask} className="flex gap-2 mb-6">
           <Input
@@ -75,46 +94,23 @@ const Maintenance = () => {
           </Button>
         </form>
 
-        <div className="space-y-2">
-          {tasks.map((task) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(["todo", "in_progress", "done"] as TaskStatus[]).map((status) => (
             <div
-              key={task.id}
-              className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+              key={status}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, status)}
+              className="bg-gray-50 p-4 rounded-lg"
             >
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleToggleTask(task.id)}
-                >
-                  {task.completed ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <Circle className="h-5 w-5" />
-                  )}
-                </Button>
-                <span
-                  className={`${
-                    task.completed ? "line-through text-gray-500" : ""
-                  }`}
-                >
-                  {task.description}
-                </span>
-              </div>
-              <Button
-                variant="destructive"
-                size="icon"
-                onClick={() => handleDeleteTask(task.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <TaskList
+                tasks={tasks}
+                status={status}
+                onToggle={handleToggleTask}
+                onDelete={handleDeleteTask}
+                onStatusChange={handleStatusChange}
+              />
             </div>
           ))}
-          {tasks.length === 0 && (
-            <p className="text-gray-500 text-center">
-              No maintenance tasks added yet
-            </p>
-          )}
         </div>
       </div>
     </div>
