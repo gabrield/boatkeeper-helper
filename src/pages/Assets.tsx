@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const Assets = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [boats, setBoats] = useState<Boat[]>([]);
-  const [selectedBoatId, setSelectedBoatId] = useState<string>("");
+  const [selectedBoatId, setSelectedBoatId] = useState<string>("no_boat");
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [newAsset, setNewAsset] = useState({
     name: "",
@@ -87,7 +86,7 @@ const Assets = () => {
 
     const assetData = {
       ...newAsset,
-      boat_id: selectedBoatId || null,
+      boat_id: selectedBoatId === "no_boat" ? null : selectedBoatId,
     };
 
     const { data: asset, error } = await supabase
@@ -107,7 +106,7 @@ const Assets = () => {
 
     setAssets([...assets, asset]);
     setNewAsset({ name: "", category: "", value: "", expiration_date: "", buyer_name: "", boat_id: "" });
-    setSelectedBoatId("");
+    setSelectedBoatId("no_boat");
     toast({
       title: "Success",
       description: "Asset added successfully",
@@ -126,7 +125,7 @@ const Assets = () => {
         value: newAsset.value,
         expiration_date: newAsset.expiration_date,
         buyer_name: newAsset.buyer_name,
-        boat_id: selectedBoatId || null,
+        boat_id: selectedBoatId === "no_boat" ? null : selectedBoatId,
       })
       .eq('id', editingAsset.id)
       .select()
@@ -144,7 +143,7 @@ const Assets = () => {
     setAssets(assets.map((a) => (a.id === editingAsset.id ? asset : a)));
     setEditingAsset(null);
     setNewAsset({ name: "", category: "", value: "", expiration_date: "", buyer_name: "", boat_id: "" });
-    setSelectedBoatId("");
+    setSelectedBoatId("no_boat");
     toast({
       title: "Success",
       description: "Asset updated successfully",
@@ -161,13 +160,13 @@ const Assets = () => {
       buyer_name: asset.buyer_name || "",
       boat_id: asset.boat_id || "",
     });
-    setSelectedBoatId(asset.boat_id || "");
+    setSelectedBoatId(asset.boat_id || "no_boat");
   };
 
   const handleCancelEdit = () => {
     setEditingAsset(null);
     setNewAsset({ name: "", category: "", value: "", expiration_date: "", buyer_name: "", boat_id: "" });
-    setSelectedBoatId("");
+    setSelectedBoatId("no_boat");
   };
 
   const handleDeleteAsset = async (id: string) => {
@@ -210,7 +209,7 @@ const Assets = () => {
                   <SelectValue placeholder="Select a boat" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No boat</SelectItem>
+                  <SelectItem value="no_boat">No boat</SelectItem>
                   {boats.map((boat) => (
                     <SelectItem key={boat.id} value={boat.id}>
                       {boat.name}
@@ -336,4 +335,3 @@ const Assets = () => {
 };
 
 export default Assets;
-
