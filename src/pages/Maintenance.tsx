@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,13 +7,16 @@ import { Task, TaskStatus } from "@/types/boat";
 import { Plus } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { TaskList } from "@/components/TaskList";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Maintenance = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleAddTask = (e: React.FormEvent) => {
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskDescription.trim()) {
       toast({
@@ -20,6 +24,12 @@ const Maintenance = () => {
         description: "Please enter a task description",
         variant: "destructive",
       });
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/login');
       return;
     }
 
@@ -32,6 +42,7 @@ const Maintenance = () => {
       priority: "medium",
       due_date: new Date().toISOString(),
       created_at: new Date().toISOString(),
+      user_id: user.id
     };
 
     setTasks([...tasks, task]);
