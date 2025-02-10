@@ -48,6 +48,13 @@ export type Database = {
             referencedRelation: "boats"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_assets_boats"
+            columns: ["boat_id"]
+            isOneToOne: false
+            referencedRelation: "boats"
+            referencedColumns: ["id"]
+          },
         ]
       }
       boats: {
@@ -117,7 +124,7 @@ export type Database = {
       }
       tasks: {
         Row: {
-          boat_id: string | null
+          boat_id: string
           completed: boolean | null
           created_at: string | null
           description: string
@@ -128,7 +135,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          boat_id?: string | null
+          boat_id: string
           completed?: boolean | null
           created_at?: string | null
           description: string
@@ -139,7 +146,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          boat_id?: string | null
+          boat_id?: string
           completed?: boolean | null
           created_at?: string | null
           description?: string
@@ -150,6 +157,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_tasks_boats"
+            columns: ["boat_id"]
+            isOneToOne: false
+            referencedRelation: "boats"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tasks_boat_id_fkey"
             columns: ["boat_id"]

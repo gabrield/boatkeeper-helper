@@ -1,13 +1,19 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Asset } from "@/types/boat";
+import { Asset, Boat } from "@/types/boat";
 import { Plus, Trash2, Calendar } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Assets = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [boats, setBoats] = useState<Boat[]>([]);
+  const [selectedBoatId, setSelectedBoatId] = useState<string>("");
   const [newAsset, setNewAsset] = useState({
     name: "",
     category: "",
@@ -16,9 +22,50 @@ const Assets = () => {
     buyer_name: "",
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleAddAsset = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchBoats();
+  }, []);
+
+  const fetchBoats = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    const { data: boats, error } = await supabase
+      .from('boats')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch boats",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBoats(boats);
+    if (boats.length > 0) {
+      setSelectedBoatId(boats[0].id);
+    }
+  };
+
+  const handleAddAsset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedBoatId) {
+      toast({
+        title: "Error",
+        description: "Please select a boat",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!newAsset.name || !newAsset.category || !newAsset.value || !newAsset.buyer_name) {
       toast({
         title: "Error",
@@ -28,12 +75,23 @@ const Assets = () => {
       return;
     }
 
-    const asset: Asset = {
-      id: Math.random().toString(36).substr(2, 9),
-      boat_id: "temporary", // This will be set properly when we integrate with Supabase
-      ...newAsset,
-      created_at: new Date().toISOString(),
-    };
+    const { data: asset, error } = await supabase
+      .from('assets')
+      .insert([{
+        ...newAsset,
+        boat_id: selectedBoatId,
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add asset",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setAssets([...assets, asset]);
     setNewAsset({ name: "", category: "", value: "", expiration_date: "", buyer_name: "" });
@@ -43,7 +101,21 @@ const Assets = () => {
     });
   };
 
-  const handleDeleteAsset = (id: string) => {
+  const handleDeleteAsset = async (id: string) => {
+    const { error } = await supabase
+      .from('assets')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete asset",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setAssets(assets.filter((asset) => asset.id !== id));
     toast({
       title: "Success",
@@ -58,6 +130,23 @@ const Assets = () => {
         <div>
           <h2 className="text-2xl font-bold mb-4">Add New Asset</h2>
           <form onSubmit={handleAddAsset} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="boat-select" className="text-sm font-medium">
+                Select Boat
+              </label>
+              <Select value={selectedBoatId} onValueChange={setSelectedBoatId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a boat" />
+                </SelectTrigger>
+                <SelectContent>
+                  {boats.map((boat) => (
+                    <SelectItem key={boat.id} value={boat.id}>
+                      {boat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Input
               placeholder="Asset Name"
               value={newAsset.name}
