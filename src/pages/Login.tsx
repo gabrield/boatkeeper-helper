@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, LogIn, User } from "lucide-react";
+import { Lock, LogIn, User, Anchor } from "lucide-react";
 import { signIn, signUp } from "@/lib/auth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -61,8 +62,16 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-marine-100 to-marine-200 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div className="min-h-screen bg-gradient-to-br from-marine-100 via-marine-200 to-marine-300 flex flex-col items-center justify-center p-4">
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center mb-4">
+          <Anchor className="h-12 w-12 text-marine-800" />
+        </div>
+        <h1 className="text-4xl font-bold text-marine-900 mb-2">Marina Master</h1>
+        <p className="text-marine-600">Your Complete Marina Management Solution</p>
+      </div>
+      
+      <Card className="w-full max-w-md shadow-xl bg-white/90 backdrop-blur-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center font-bold text-marine-900">
             {isSignUp ? "Create an Account" : "Welcome Back"}
@@ -118,7 +127,7 @@ const Login = () => {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button
-              className="w-full bg-marine-600 hover:bg-marine-700"
+              className="w-full bg-marine-600 hover:bg-marine-700 transition-colors duration-200"
               disabled={loading}
               type="submit"
             >
