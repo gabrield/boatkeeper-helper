@@ -23,6 +23,12 @@ const Maintenance = () => {
     fetchBoats();
   }, []);
 
+  useEffect(() => {
+    if (selectedBoatId) {
+      fetchTasks();
+    }
+  }, [selectedBoatId]);
+
   const fetchBoats = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -48,6 +54,32 @@ const Maintenance = () => {
     if (boats.length > 0) {
       setSelectedBoatId(boats[0].id);
     }
+  };
+
+  const fetchTasks = async () => {
+    if (!selectedBoatId) return;
+
+    const { data: tasks, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('boat_id', selectedBoatId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch tasks",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Explicitly cast the status to TaskStatus
+    setTasks(tasks.map(task => ({
+      ...task,
+      status: task.status as TaskStatus,
+      priority: task.priority as Task['priority']
+    })));
   };
 
   const handleAddTask = async (e: React.FormEvent) => {
@@ -99,7 +131,14 @@ const Maintenance = () => {
       return;
     }
 
-    setTasks([...tasks, task]);
+    // Explicitly cast the new task's status
+    const typedTask: Task = {
+      ...task,
+      status: task.status as TaskStatus,
+      priority: task.priority as Task['priority']
+    };
+
+    setTasks([...tasks, typedTask]);
     setNewTaskDescription("");
     toast({
       title: "Success",
@@ -274,3 +313,4 @@ const Maintenance = () => {
 };
 
 export default Maintenance;
+
