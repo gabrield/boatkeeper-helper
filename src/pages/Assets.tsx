@@ -26,9 +26,18 @@ const Assets = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    checkUser();
     fetchBoats();
     fetchAssets();
   }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+  };
 
   const fetchBoats = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -40,6 +49,7 @@ const Assets = () => {
     const { data: boats, error } = await supabase
       .from('boats')
       .select('*')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -51,10 +61,16 @@ const Assets = () => {
       return;
     }
 
-    setBoats(boats);
+    setBoats(boats || []);
   };
 
   const fetchAssets = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     const { data: assets, error } = await supabase
       .from('assets')
       .select('*')
@@ -69,7 +85,7 @@ const Assets = () => {
       return;
     }
 
-    setAssets(assets);
+    setAssets(assets || []);
   };
 
   const handleAddAsset = async (e: React.FormEvent) => {
