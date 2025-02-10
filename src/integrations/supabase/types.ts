@@ -11,7 +11,7 @@ export type Database = {
     Tables: {
       assets: {
         Row: {
-          boat_id: string
+          boat_id: string | null
           buyer_name: string | null
           category: string | null
           created_at: string | null
@@ -21,7 +21,7 @@ export type Database = {
           value: string | null
         }
         Insert: {
-          boat_id: string
+          boat_id?: string | null
           buyer_name?: string | null
           category?: string | null
           created_at?: string | null
@@ -31,7 +31,7 @@ export type Database = {
           value?: string | null
         }
         Update: {
-          boat_id?: string
+          boat_id?: string | null
           buyer_name?: string | null
           category?: string | null
           created_at?: string | null

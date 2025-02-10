@@ -4,7 +4,7 @@ import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Asset, Boat } from "@/types/boat";
-import { Plus, Trash2, Calendar } from "lucide-react";
+import { Plus, Trash2, Calendar, Pencil, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -14,18 +14,21 @@ const Assets = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [boats, setBoats] = useState<Boat[]>([]);
   const [selectedBoatId, setSelectedBoatId] = useState<string>("");
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [newAsset, setNewAsset] = useState({
     name: "",
     category: "",
     value: "",
     expiration_date: "",
     buyer_name: "",
+    boat_id: "",
   });
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchBoats();
+    fetchAssets();
   }, []);
 
   const fetchBoats = async () => {
@@ -50,21 +53,28 @@ const Assets = () => {
     }
 
     setBoats(boats);
-    if (boats.length > 0) {
-      setSelectedBoatId(boats[0].id);
-    }
   };
 
-  const handleAddAsset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedBoatId) {
+  const fetchAssets = async () => {
+    const { data: assets, error } = await supabase
+      .from('assets')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
       toast({
         title: "Error",
-        description: "Please select a boat",
+        description: "Failed to fetch assets",
         variant: "destructive",
       });
       return;
     }
+
+    setAssets(assets);
+  };
+
+  const handleAddAsset = async (e: React.FormEvent) => {
+    e.preventDefault();
 
     if (!newAsset.name || !newAsset.category || !newAsset.value || !newAsset.buyer_name) {
       toast({
@@ -75,12 +85,14 @@ const Assets = () => {
       return;
     }
 
+    const assetData = {
+      ...newAsset,
+      boat_id: selectedBoatId || null,
+    };
+
     const { data: asset, error } = await supabase
       .from('assets')
-      .insert([{
-        ...newAsset,
-        boat_id: selectedBoatId,
-      }])
+      .insert([assetData])
       .select()
       .single();
 
@@ -94,11 +106,68 @@ const Assets = () => {
     }
 
     setAssets([...assets, asset]);
-    setNewAsset({ name: "", category: "", value: "", expiration_date: "", buyer_name: "" });
+    setNewAsset({ name: "", category: "", value: "", expiration_date: "", buyer_name: "", boat_id: "" });
+    setSelectedBoatId("");
     toast({
       title: "Success",
       description: "Asset added successfully",
     });
+  };
+
+  const handleUpdateAsset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAsset) return;
+
+    const { data: asset, error } = await supabase
+      .from('assets')
+      .update({
+        name: newAsset.name,
+        category: newAsset.category,
+        value: newAsset.value,
+        expiration_date: newAsset.expiration_date,
+        buyer_name: newAsset.buyer_name,
+        boat_id: selectedBoatId || null,
+      })
+      .eq('id', editingAsset.id)
+      .select()
+      .single();
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update asset",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAssets(assets.map((a) => (a.id === editingAsset.id ? asset : a)));
+    setEditingAsset(null);
+    setNewAsset({ name: "", category: "", value: "", expiration_date: "", buyer_name: "", boat_id: "" });
+    setSelectedBoatId("");
+    toast({
+      title: "Success",
+      description: "Asset updated successfully",
+    });
+  };
+
+  const handleEditAsset = (asset: Asset) => {
+    setEditingAsset(asset);
+    setNewAsset({
+      name: asset.name,
+      category: asset.category || "",
+      value: asset.value || "",
+      expiration_date: asset.expiration_date || "",
+      buyer_name: asset.buyer_name || "",
+      boat_id: asset.boat_id || "",
+    });
+    setSelectedBoatId(asset.boat_id || "");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingAsset(null);
+    setNewAsset({ name: "", category: "", value: "", expiration_date: "", buyer_name: "", boat_id: "" });
+    setSelectedBoatId("");
   };
 
   const handleDeleteAsset = async (id: string) => {
@@ -128,17 +197,20 @@ const Assets = () => {
       <Navigation />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
-          <h2 className="text-2xl font-bold mb-4">Add New Asset</h2>
-          <form onSubmit={handleAddAsset} className="space-y-4">
+          <h2 className="text-2xl font-bold mb-4">
+            {editingAsset ? "Edit Asset" : "Add New Asset"}
+          </h2>
+          <form onSubmit={editingAsset ? handleUpdateAsset : handleAddAsset} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="boat-select" className="text-sm font-medium">
-                Select Boat
+                Select Boat (Optional)
               </label>
               <Select value={selectedBoatId} onValueChange={setSelectedBoatId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a boat" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">No boat</SelectItem>
                   {boats.map((boat) => (
                     <SelectItem key={boat.id} value={boat.id}>
                       {boat.name}
@@ -185,10 +257,27 @@ const Assets = () => {
               />
               <Calendar className="h-4 w-4 text-gray-500" />
             </div>
-            <Button type="submit">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Asset
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1">
+                {editingAsset ? (
+                  <>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Update Asset
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Asset
+                  </>
+                )}
+              </Button>
+              {editingAsset && (
+                <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              )}
+            </div>
           </form>
         </div>
 
@@ -207,19 +296,33 @@ const Assets = () => {
                   </p>
                   <p className="text-sm text-gray-600">Value: {asset.value}</p>
                   <p className="text-sm text-gray-600">Owner: {asset.buyer_name}</p>
+                  {asset.boat_id && (
+                    <p className="text-sm text-gray-600">
+                      Boat: {boats.find(b => b.id === asset.boat_id)?.name || 'Unknown'}
+                    </p>
+                  )}
                   {asset.expiration_date && (
                     <p className="text-sm text-gray-600">
                       Expires: {new Date(asset.expiration_date).toLocaleDateString()}
                     </p>
                   )}
                 </div>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => handleDeleteAsset(asset.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleEditAsset(asset)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => handleDeleteAsset(asset.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
             {assets.length === 0 && (
@@ -233,3 +336,4 @@ const Assets = () => {
 };
 
 export default Assets;
+
