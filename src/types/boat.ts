@@ -1,3 +1,4 @@
+
 export interface Boat {
   id: string;
   user_id: string;
@@ -8,9 +9,10 @@ export interface Boat {
   manufacturer: string;
   images: string[];
   created_at: string;
+  updated_at?: string;
 }
 
-export type NewBoat = Omit<Boat, "id" | "user_id" | "created_at">;
+export type NewBoat = Omit<Boat, "id" | "user_id" | "created_at" | "updated_at">;
 
 export interface Asset {
   id: string;
@@ -29,9 +31,10 @@ export interface Task {
   description: string;
   completed: boolean;
   due_date: string;
-  status: 'todo' | 'in_progress' | 'done';
-  priority: 'low' | 'medium' | 'high';
+  status: TaskStatus;
+  priority: TaskPriority;
   created_at: string;
+  user_id: string;
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
