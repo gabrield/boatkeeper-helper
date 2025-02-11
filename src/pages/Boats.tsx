@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from "react";
 import { BoatList } from "@/components/BoatList";
 import { BoatForm } from "@/components/BoatForm";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Boat, NewBoat } from "@/types/boat";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
@@ -16,6 +16,7 @@ const Boats = () => {
   const [editingBoat, setEditingBoat] = useState<Boat | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -49,6 +50,10 @@ const Boats = () => {
       setLoading(false);
     }
   };
+
+  const filteredBoats = boats.filter(boat =>
+    boat.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleAddBoat = async (data: NewBoat) => {
     try {
@@ -184,7 +189,7 @@ const Boats = () => {
             )}
           </Button>
         </div>
-        
+
         {showForm && (
           <div className="mb-8">
             <BoatForm 
@@ -195,8 +200,19 @@ const Boats = () => {
           </div>
         )}
 
+        <div className="relative mb-4">
+          <Input
+            type="text"
+            placeholder="Search boats by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+          <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+        </div>
+
         <BoatList
-          boats={boats}
+          boats={filteredBoats}
           onDelete={handleDeleteBoat}
           onSelect={setSelectedBoat}
           onEdit={handleEditBoat}
