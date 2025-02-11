@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { NewBoat, Boat } from "@/types/boat";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Trash2 } from "lucide-react";
 
 interface BoatFormProps {
   onSubmit: (data: NewBoat) => void;
@@ -56,14 +57,21 @@ export const BoatForm = ({ onSubmit, editingBoat, onCancel }: BoatFormProps) => 
           if (typeof reader.result === "string") {
             newImages.push(reader.result);
             if (newImages.length === files.length) {
-              setSelectedImages(newImages);
-              form.setValue("images", newImages);
+              const updatedImages = [...selectedImages, ...newImages];
+              setSelectedImages(updatedImages);
+              form.setValue("images", updatedImages);
             }
           }
         };
         reader.readAsDataURL(file);
       });
     }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    const updatedImages = selectedImages.filter((_, i) => i !== index);
+    setSelectedImages(updatedImages);
+    form.setValue("images", updatedImages);
   };
 
   return (
@@ -169,12 +177,22 @@ export const BoatForm = ({ onSubmit, editingBoat, onCancel }: BoatFormProps) => 
           {selectedImages.length > 0 && (
             <div className="grid grid-cols-2 gap-2 mt-2">
               {selectedImages.map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`Boat image ${index + 1}`}
-                  className="w-full h-32 object-cover rounded-md"
-                />
+                <div key={index} className="relative group">
+                  <img
+                    src={image}
+                    alt={`Boat image ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-md"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleRemoveImage(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               ))}
             </div>
           )}
