@@ -1,149 +1,36 @@
+
 import React, { useState, useEffect } from "react";
-import { BoatList } from "@/components/BoatList";
-import { BoatForm } from "@/components/BoatForm";
 import { Navigation } from "@/components/Navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { BoatList } from "@/components/BoatList";
+import { BoatSearch } from "@/components/BoatSearch";
+import { BoatFormSection } from "@/components/BoatFormSection";
 import { Boat, NewBoat } from "@/types/boat";
-import { Plus, X, Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useBoats } from "@/hooks/useBoats";
 
 const Boats = () => {
-  const [boats, setBoats] = useState<Boat[]>([]);
   const [selectedBoat, setSelectedBoat] = useState<Boat | null>(null);
   const [editingBoat, setEditingBoat] = useState<Boat | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const { toast } = useToast();
-  const navigate = useNavigate();
+  const { boats, loading, fetchBoats, addBoat, updateBoat, deleteBoat } = useBoats();
 
   useEffect(() => {
     fetchBoats();
   }, []);
 
-  const fetchBoats = async () => {
-    try {
-      const { data: boats, error } = await supabase
-        .from('boats')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      setBoats(boats || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-
-      if (error.status === 401) {
-        navigate('/login');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredBoats = boats.filter(boat =>
-    boat.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const handleAddBoat = async (data: NewBoat) => {
-    try {
-      const { data: newBoat, error } = await supabase
-        .from('boats')
-        .insert([{
-          ...data,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setBoats([newBoat, ...boats]);
+    const success = await addBoat(data);
+    if (success) {
       setShowForm(false);
-      toast({
-        title: "Success",
-        description: "Boat added successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
     }
   };
 
   const handleUpdateBoat = async (data: NewBoat) => {
     if (!editingBoat) return;
-
-    try {
-      const { data: updatedBoat, error } = await supabase
-        .from('boats')
-        .update({
-          ...data,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', editingBoat.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setBoats(boats.map((boat) => 
-        boat.id === editingBoat.id ? updatedBoat : boat
-      ));
+    const success = await updateBoat(editingBoat.id, data);
+    if (success) {
       setEditingBoat(null);
       setShowForm(false);
-      toast({
-        title: "Success",
-        description: "Boat updated successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteBoat = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('boats')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setBoats(boats.filter((boat) => boat.id !== id));
-      if (selectedBoat?.id === id) {
-        setSelectedBoat(null);
-      }
-      if (editingBoat?.id === id) {
-        setEditingBoat(null);
-        setShowForm(false);
-      }
-      toast({
-        title: "Success",
-        description: "Boat deleted successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
     }
   };
 
@@ -156,6 +43,21 @@ const Boats = () => {
     setEditingBoat(null);
     setShowForm(false);
   };
+
+  const handleDeleteBoat = async (id: string) => {
+    const success = await deleteBoat(id);
+    if (success && selectedBoat?.id === id) {
+      setSelectedBoat(null);
+    }
+    if (success && editingBoat?.id === id) {
+      setEditingBoat(null);
+      setShowForm(false);
+    }
+  };
+
+  const filteredBoats = boats.filter(boat =>
+    boat.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -171,45 +73,19 @@ const Boats = () => {
   return (
     <div className="container mx-auto py-8">
       <Navigation />
-      
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-marine-900">Your Boats</h2>
-          <Button onClick={() => setShowForm(!showForm)}>
-            {showForm ? (
-              <>
-                <X className="h-4 w-4 mr-2" />
-                Close Form
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Boat
-              </>
-            )}
-          </Button>
-        </div>
-
-        {showForm && (
-          <div className="mb-8">
-            <BoatForm 
-              onSubmit={editingBoat ? handleUpdateBoat : handleAddBoat}
-              editingBoat={editingBoat}
-              onCancel={editingBoat ? handleCancelEdit : undefined}
-            />
-          </div>
-        )}
-
-        <div className="relative mb-4">
-          <Input
-            type="text"
-            placeholder="Search boats by name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-          <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-        </div>
+        <BoatFormSection
+          showForm={showForm}
+          setShowForm={setShowForm}
+          editingBoat={editingBoat}
+          onSubmit={editingBoat ? handleUpdateBoat : handleAddBoat}
+          onCancel={handleCancelEdit}
+        />
+        
+        <BoatSearch
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
 
         <BoatList
           boats={filteredBoats}
