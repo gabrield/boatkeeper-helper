@@ -1,21 +1,100 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { Ship, Anchor, Wrench, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
-  // Sample data for demonstration
-  const totalBoats = 0;
-  const totalAssets = 0;
-  const totalMaintenanceTasks = 0;
-
-  const chartData = [
+  const [totalBoats, setTotalBoats] = useState(0);
+  const [totalAssets, setTotalAssets] = useState(0);
+  const [totalMaintenanceTasks, setTotalMaintenanceTasks] = useState(0);
+  const [chartData, setChartData] = useState([
     { type: "Sailboat", count: 0 },
     { type: "Yacht", count: 0 },
     { type: "Speedboat", count: 0 },
-  ];
+  ]);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Get user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      // Fetch total boats and boat types
+      const { data: boats, error: boatsError } = await supabase
+        .from('boats')
+        .select('type')
+        .eq('user_id', user.id);
+
+      if (boatsError) throw boatsError;
+
+      setTotalBoats(boats?.length || 0);
+
+      // Count boats by type
+      const boatTypes = {
+        Sailboat: 0,
+        Yacht: 0,
+        Speedboat: 0,
+      };
+
+      boats?.forEach(boat => {
+        if (boat.type in boatTypes) {
+          boatTypes[boat.type as keyof typeof boatTypes]++;
+        }
+      });
+
+      setChartData([
+        { type: "Sailboat", count: boatTypes.Sailboat },
+        { type: "Yacht", count: boatTypes.Yacht },
+        { type: "Speedboat", count: boatTypes.Speedboat },
+      ]);
+
+      // Fetch total assets
+      const { data: assets, error: assetsError } = await supabase
+        .from('assets')
+        .select('id')
+        .eq('boat_id', boats?.map(boat => boat.id));
+
+      if (assetsError) throw assetsError;
+
+      setTotalAssets(assets?.length || 0);
+
+      // Fetch total maintenance tasks
+      const { data: tasks, error: tasksError } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (tasksError) throw tasksError;
+
+      setTotalMaintenanceTasks(tasks?.length || 0);
+
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+
+      if (error.status === 401) {
+        navigate('/login');
+      }
+    }
+  };
 
   return (
     <div className="container mx-auto py-8">
