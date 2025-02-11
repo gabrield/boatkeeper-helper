@@ -26,30 +26,32 @@ const Assets = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkUser();
-    fetchBoats();
-    fetchAssets();
-  }, []);
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login');
+        return;
+      }
+      await Promise.all([fetchBoats(), fetchAssets()]);
+    };
 
-  const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-  };
+    init();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate('/login');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const fetchBoats = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
     const { data: boats, error } = await supabase
       .from('boats')
       .select('*')
-      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -65,12 +67,6 @@ const Assets = () => {
   };
 
   const fetchAssets = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
     const { data: assets, error } = await supabase
       .from('assets')
       .select('*')
