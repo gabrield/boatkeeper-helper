@@ -37,7 +37,7 @@ const Index = () => {
       // Fetch total boats and boat types
       const { data: boats, error: boatsError } = await supabase
         .from('boats')
-        .select('type')
+        .select('id, type')  // Now selecting both id and type
         .eq('user_id', user.id);
 
       if (boatsError) throw boatsError;
@@ -63,11 +63,12 @@ const Index = () => {
         { type: "Speedboat", count: boatTypes.Speedboat },
       ]);
 
-      // Fetch total assets
+      // Fetch total assets using .in() for the boat_id array
+      const boatIds = boats?.map(boat => boat.id) || [];
       const { data: assets, error: assetsError } = await supabase
         .from('assets')
         .select('id')
-        .eq('boat_id', boats?.map(boat => boat.id));
+        .in('boat_id', boatIds);
 
       if (assetsError) throw assetsError;
 
