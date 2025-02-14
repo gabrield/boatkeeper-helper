@@ -3,17 +3,20 @@ import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Asset, Boat } from "@/types/boat";
-import { Plus, Trash2, Calendar, Pencil, X } from "lucide-react";
+import { Plus, Trash2, Calendar, Pencil, X, Search } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BoatSearch } from "@/components/BoatSearch";
 
 const Assets = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [boats, setBoats] = useState<Boat[]>([]);
   const [selectedBoatId, setSelectedBoatId] = useState<string>("no_boat");
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [newAsset, setNewAsset] = useState({
     name: "",
     category: "",
@@ -203,15 +206,49 @@ const Assets = () => {
     });
   };
 
+  const filteredAssets = assets.filter(asset => {
+    const matchesSearch = asset.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesBoat = boats.some(boat => 
+      boat.name.toLowerCase().includes(searchQuery.toLowerCase()) && boat.id === asset.boat_id
+    );
+    return matchesSearch || matchesBoat;
+  });
+
   return (
     <div className="container mx-auto py-8">
       <Navigation />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-2xl font-bold mb-4">
-            {editingAsset ? "Edit Asset" : "Add New Asset"}
-          </h2>
-          <form onSubmit={editingAsset ? handleUpdateAsset : handleAddAsset} className="space-y-4">
+      
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Your Assets</h2>
+          <Button onClick={() => setShowForm(!showForm)}>
+            {showForm ? (
+              <>
+                <X className="h-4 w-4 mr-2" />
+                Close Form
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Asset
+              </>
+            )}
+          </Button>
+        </div>
+
+        <div className="relative mb-4">
+          <Input
+            type="text"
+            placeholder="Search assets by name or boat..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+          <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+        </div>
+
+        {showForm && (
+          <form onSubmit={editingAsset ? handleUpdateAsset : handleAddAsset} className="space-y-4 mb-8">
             <div className="space-y-2">
               <label htmlFor="boat-select" className="text-sm font-medium">
                 Select Boat (Optional)
@@ -290,56 +327,56 @@ const Assets = () => {
               )}
             </div>
           </form>
-        </div>
+        )}
 
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Asset List</h2>
-          <div className="space-y-4">
-            {assets.map((asset) => (
-              <div
-                key={asset.id}
-                className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
-              >
-                <div>
-                  <h3 className="font-semibold">{asset.name}</h3>
+        <div className="space-y-4">
+          {filteredAssets.map((asset) => (
+            <div
+              key={asset.id}
+              className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+            >
+              <div>
+                <h3 className="font-semibold">{asset.name}</h3>
+                <p className="text-sm text-gray-600">
+                  Category: {asset.category}
+                </p>
+                <p className="text-sm text-gray-600">Value: {asset.value}</p>
+                <p className="text-sm text-gray-600">Owner: {asset.buyer_name}</p>
+                {asset.boat_id && (
                   <p className="text-sm text-gray-600">
-                    Category: {asset.category}
+                    Boat: {boats.find(b => b.id === asset.boat_id)?.name || 'Unknown'}
                   </p>
-                  <p className="text-sm text-gray-600">Value: {asset.value}</p>
-                  <p className="text-sm text-gray-600">Owner: {asset.buyer_name}</p>
-                  {asset.boat_id && (
-                    <p className="text-sm text-gray-600">
-                      Boat: {boats.find(b => b.id === asset.boat_id)?.name || 'Unknown'}
-                    </p>
-                  )}
-                  {asset.expiration_date && (
-                    <p className="text-sm text-gray-600">
-                      Expires: {new Date(asset.expiration_date).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleEditAsset(asset)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => handleDeleteAsset(asset.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                )}
+                {asset.expiration_date && (
+                  <p className="text-sm text-gray-600">
+                    Expires: {new Date(asset.expiration_date).toLocaleDateString()}
+                  </p>
+                )}
               </div>
-            ))}
-            {assets.length === 0 && (
-              <p className="text-gray-500 text-center">No assets added yet</p>
-            )}
-          </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    handleEditAsset(asset);
+                    setShowForm(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => handleDeleteAsset(asset.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+          {filteredAssets.length === 0 && (
+            <p className="text-gray-500 text-center">No assets found</p>
+          )}
         </div>
       </div>
     </div>
