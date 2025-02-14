@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Asset, Boat } from "@/types/boat";
-import { Plus, Trash2, Calendar, Pencil, X, Search } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BoatSearch } from "@/components/BoatSearch";
+import { AssetForm } from "@/components/AssetForm";
+import { AssetItem } from "@/components/AssetItem";
+import { AssetSearch } from "@/components/AssetSearch";
 
 const Assets = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -236,143 +236,36 @@ const Assets = () => {
           </Button>
         </div>
 
-        <div className="relative mb-4">
-          <Input
-            type="text"
-            placeholder="Search assets by name or boat..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-          <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-        </div>
+        <AssetSearch
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
 
         {showForm && (
-          <form onSubmit={editingAsset ? handleUpdateAsset : handleAddAsset} className="space-y-4 mb-8">
-            <div className="space-y-2">
-              <label htmlFor="boat-select" className="text-sm font-medium">
-                Select Boat (Optional)
-              </label>
-              <Select value={selectedBoatId} onValueChange={setSelectedBoatId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a boat" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no_boat">No boat</SelectItem>
-                  {boats.map((boat) => (
-                    <SelectItem key={boat.id} value={boat.id}>
-                      {boat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Input
-              placeholder="Asset Name"
-              value={newAsset.name}
-              onChange={(e) =>
-                setNewAsset({ ...newAsset, name: e.target.value })
-              }
-            />
-            <Input
-              placeholder="Category"
-              value={newAsset.category}
-              onChange={(e) =>
-                setNewAsset({ ...newAsset, category: e.target.value })
-              }
-            />
-            <Input
-              placeholder="Value"
-              value={newAsset.value}
-              onChange={(e) =>
-                setNewAsset({ ...newAsset, value: e.target.value })
-              }
-            />
-            <Input
-              placeholder="Buyer Name"
-              value={newAsset.buyer_name}
-              onChange={(e) =>
-                setNewAsset({ ...newAsset, buyer_name: e.target.value })
-              }
-            />
-            <div className="flex items-center space-x-2">
-              <Input
-                type="date"
-                value={newAsset.expiration_date}
-                onChange={(e) =>
-                  setNewAsset({ ...newAsset, expiration_date: e.target.value })
-                }
-              />
-              <Calendar className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit" className="flex-1">
-                {editingAsset ? (
-                  <>
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Update Asset
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Asset
-                  </>
-                )}
-              </Button>
-              {editingAsset && (
-                <Button type="button" variant="outline" onClick={handleCancelEdit}>
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-              )}
-            </div>
-          </form>
+          <AssetForm
+            boats={boats}
+            selectedBoatId={selectedBoatId}
+            setSelectedBoatId={setSelectedBoatId}
+            newAsset={newAsset}
+            setNewAsset={setNewAsset}
+            editingAsset={editingAsset}
+            onSubmit={editingAsset ? handleUpdateAsset : handleAddAsset}
+            onCancel={handleCancelEdit}
+          />
         )}
 
         <div className="space-y-4">
           {filteredAssets.map((asset) => (
-            <div
+            <AssetItem
               key={asset.id}
-              className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
-            >
-              <div>
-                <h3 className="font-semibold">{asset.name}</h3>
-                <p className="text-sm text-gray-600">
-                  Category: {asset.category}
-                </p>
-                <p className="text-sm text-gray-600">Value: {asset.value}</p>
-                <p className="text-sm text-gray-600">Owner: {asset.buyer_name}</p>
-                {asset.boat_id && (
-                  <p className="text-sm text-gray-600">
-                    Boat: {boats.find(b => b.id === asset.boat_id)?.name || 'Unknown'}
-                  </p>
-                )}
-                {asset.expiration_date && (
-                  <p className="text-sm text-gray-600">
-                    Expires: {new Date(asset.expiration_date).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => {
-                    handleEditAsset(asset);
-                    setShowForm(true);
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => handleDeleteAsset(asset.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+              asset={asset}
+              boats={boats}
+              onEdit={(asset) => {
+                handleEditAsset(asset);
+                setShowForm(true);
+              }}
+              onDelete={handleDeleteAsset}
+            />
           ))}
           {filteredAssets.length === 0 && (
             <p className="text-gray-500 text-center">No assets found</p>
