@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 import { Ship, Anchor, Wrench, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,11 +11,6 @@ const Index = () => {
   const [totalBoats, setTotalBoats] = useState(0);
   const [totalAssets, setTotalAssets] = useState(0);
   const [totalMaintenanceTasks, setTotalMaintenanceTasks] = useState(0);
-  const [chartData, setChartData] = useState([
-    { type: "Sailboat", count: 0 },
-    { type: "Yacht", count: 0 },
-    { type: "Speedboat", count: 0 },
-  ]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -43,25 +36,6 @@ const Index = () => {
       if (boatsError) throw boatsError;
 
       setTotalBoats(boats?.length || 0);
-
-      // Count boats by type
-      const boatTypes = {
-        Sailboat: 0,
-        Yacht: 0,
-        Speedboat: 0,
-      };
-
-      boats?.forEach(boat => {
-        if (boat.type in boatTypes) {
-          boatTypes[boat.type as keyof typeof boatTypes]++;
-        }
-      });
-
-      setChartData([
-        { type: "Sailboat", count: boatTypes.Sailboat },
-        { type: "Yacht", count: boatTypes.Yacht },
-        { type: "Speedboat", count: boatTypes.Speedboat },
-      ]);
 
       // Fetch total assets using .in() for the boat_id array
       const boatIds = boats?.map(boat => boat.id) || [];
@@ -103,7 +77,10 @@ const Index = () => {
       
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg"
+          onClick={() => navigate('/boats')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Boats</CardTitle>
             <Ship className="h-4 w-4 text-muted-foreground" />
@@ -113,7 +90,10 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg"
+          onClick={() => navigate('/assets')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
             <Anchor className="h-4 w-4 text-muted-foreground" />
@@ -123,7 +103,10 @@ const Index = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg"
+          onClick={() => navigate('/maintenance')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Maintenance Tasks</CardTitle>
             <Wrench className="h-4 w-4 text-muted-foreground" />
@@ -143,23 +126,6 @@ const Index = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Boats by Type Chart */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Boats by Type</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer className="h-[300px]" config={{}}>
-            <BarChart data={chartData}>
-              <XAxis dataKey="type" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#2563eb" />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 };
