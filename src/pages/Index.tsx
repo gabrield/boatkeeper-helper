@@ -15,8 +15,33 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    const checkAuthAndFetchData = async () => {
+      // First check the session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate('/login');
+        return;
+      }
+      
+      // If we have a session, fetch the dashboard data
+      fetchDashboardData();
+    };
+
+    checkAuthAndFetchData();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate('/login');
+      }
+    });
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const fetchDashboardData = async () => {
     try {
