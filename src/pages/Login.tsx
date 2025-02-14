@@ -65,15 +65,15 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-marine-100 via-marine-200 to-marine-300 flex flex-col items-center justify-center p-4">
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-4">
-          <Anchor className="h-12 w-12 text-marine-800" />
+          <Anchor className="h-12 w-12 text-primary" />
         </div>
-        <h1 className="text-4xl font-bold text-marine-900 mb-2">Marina Master</h1>
+        <h1 className="text-4xl font-bold text-primary mb-2">ShipShape</h1>
         <p className="text-marine-600">Your Complete Marina Management Solution</p>
       </div>
       
       <Card className="w-full max-w-md shadow-xl bg-white/90 backdrop-blur-sm">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center font-bold text-marine-900">
+          <CardTitle className="text-2xl text-center font-bold text-primary">
             {isSignUp ? "Create an Account" : "Welcome Back"}
           </CardTitle>
           <CardDescription className="text-center text-marine-600">
@@ -127,7 +127,7 @@ const Login = () => {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button
-              className="w-full bg-marine-600 hover:bg-marine-700 transition-colors duration-200"
+              className="w-full bg-primary hover:bg-primary/90 transition-colors duration-200"
               disabled={loading}
               type="submit"
             >
@@ -142,7 +142,7 @@ const Login = () => {
                   setIsSignUp(!isSignUp);
                   setShowConfirmEmail(false);
                 }}
-                className="text-marine-800 hover:underline font-medium"
+                className="text-primary hover:underline font-medium"
               >
                 {isSignUp ? "Sign in" : "Sign up"}
               </button>
